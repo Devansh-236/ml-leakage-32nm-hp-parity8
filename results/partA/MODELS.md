@@ -1,0 +1,71 @@
+# Part A: transistor models
+
+## Level 0: model comparison (validation set, 7,000 training rows)
+
+R² is computed on the signed-log scale (currents span many decades; linear R² is in `compare_val.csv`). Errors are per-sample relative errors in %.
+
+### NMOS_ON
+
+| Family | id: R² / med / p95 | ig: R² / med / p95 | is: R² / med / p95 | ib: R² / med / p95 |
+|---|---|---|---|---|
+| poly | 0.91438 / 89.9 / 7.06e+03 | 0.99300 / 12.9 / 47.2 | 0.91438 / 89.9 / 7.05e+03 | 0.98146 / 25.3 / 85.5 |
+| lgbm | 0.99915 / 6.46 / 421 | 0.99765 / 7.33 / 24.9 | 0.99916 / 6.2 / 409 | 0.99356 / 12 / 49.9 |
+| mlp | 0.99961 / 2.13 / 303 | 0.99953 / 1.17 / 9.97 | 0.99961 / 2.25 / 260 | 0.99991 / 1.37 / 5.64 |
+| gp | 0.00016 / 100 / 909 | 0.99988 / 0.855 / 5.93 | 0.00016 / 100 / 910 | 0.99969 / 2.37 / 10.8 |
+
+### NMOS_OFF
+
+| Family | id: R² / med / p95 | ig: R² / med / p95 | is: R² / med / p95 | ib: R² / med / p95 |
+|---|---|---|---|---|
+| poly | 0.92517 / 63.6 / 291 | 0.99478 / 7.61 / 26.3 | 0.93027 / 61.7 / 302 | 0.98258 / 12.6 / 38.6 |
+| lgbm | 0.98983 / 8.04 / 78.2 | 0.99885 / 3.44 / 12.6 | 0.98804 / 6.57 / 79 | 0.99904 / 1.35 / 7.2 |
+| mlp | 0.99850 / 2.95 / 20.3 | 0.99990 / 0.993 / 3.64 | 0.99769 / 3.79 / 28 | 0.99728 / 1.6 / 8.7 |
+| gp | 0.98776 / 7.09 / 96.2 | 1.00000 / 0.00532 / 0.0592 | 0.99126 / 6.45 / 87.8 | 0.99679 / 2.72 / 18.3 |
+
+### PMOS_ON
+
+| Family | id: R² / med / p95 | ig: R² / med / p95 | is: R² / med / p95 | ib: R² / med / p95 |
+|---|---|---|---|---|
+| poly | 0.91476 / 88.1 / 6.2e+03 | 0.98641 / 27 / 113 | 0.91476 / 88.1 / 6.2e+03 | 0.98184 / 25.2 / 92.1 |
+| lgbm | 0.99919 / 6.79 / 339 | 0.99608 / 12.5 / 46.3 | 0.99919 / 6.73 / 309 | 0.99484 / 11.1 / 41.2 |
+| mlp | 0.99867 / 1.97 / 165 | 0.99997 / 1.06 / 4.06 | 0.99866 / 2.05 / 184 | 0.99993 / 1.3 / 4.79 |
+| gp | 0.99929 / 4.96 / 763 | 0.99995 / 0.893 / 5.81 | 0.99929 / 4.96 / 763 | 0.99965 / 2.67 / 11 |
+
+### PMOS_OFF
+
+| Family | id: R² / med / p95 | ig: R² / med / p95 | is: R² / med / p95 | ib: R² / med / p95 |
+|---|---|---|---|---|
+| poly | 0.89613 / 87.1 / 747 | 0.58025 / 46.7 / 160 | 0.91544 / 78.4 / 859 | 0.98359 / 12.6 / 35.9 |
+| lgbm | 0.97792 / 18.3 / 100 | 0.56823 / 29.9 / 155 | 0.98522 / 19.7 / 116 | 0.99612 / 1.25 / 10.5 |
+| mlp | 0.98651 / 17.7 / 94 | 0.28594 / 22.9 / 877 | 0.98624 / 19.4 / 105 | 0.99214 / 5.02 / 24.7 |
+| gp | 0.94189 / 38.2 / 487 | 0.03867 / 91.5 / 2.12e+03 | 0.98259 / 18.7 / 119 | 0.99598 / 1.5 / 15.8 |
+
+
+## Escalation ladder
+
+Gate-level mean accuracy on the development corners (not the reported ones) decides each step.
+
+| Rung | variants (per case) | mean-median val. error (per case) | dev acc (a) | dev acc (b) |
+|---|---|---|---|---|
+| L0 | NMOS_ON: mlp, NMOS_OFF: mlp, PMOS_ON: mlp, PMOS_OFF: mlp | 1.73 %, 2.33 %, 1.60 %, 16.24 % | 85.85 % | 84.78 % |
+| L1 | NMOS_ON: k8, NMOS_OFF: k8, PMOS_ON: k8, PMOS_OFF: k8 | 0.11 %, 0.26 %, 0.11 %, 5.07 % | 95.09 % | 94.88 % |
+| L2 | NMOS_ON: k8, NMOS_OFF: k8, PMOS_ON: k8, PMOS_OFF: k8 | 0.07 %, 0.15 %, 0.07 %, 4.20 % | 96.66 % | 96.44 % |
+| L3 | NMOS_ON: k8e4, NMOS_OFF: k8e4, PMOS_ON: k8e4, PMOS_OFF: k8e4 | 0.09 %, 0.40 %, 0.08 %, 4.70 % | 99.11 % | 99.03 % |
+
+### Validation error versus training rows (one MLP per size)
+
+| Case | 17000 rows | 27000 rows | 47000 rows | 87000 rows |
+|---|---|---|---|---|
+| NMOS_ON | 0.26 % | 0.19 % | 0.14 % | 0.11 % |
+| NMOS_OFF | 0.55 % | 0.41 % | 0.32 % | 0.26 % |
+| PMOS_ON | 0.25 % | 0.18 % | 0.14 % | 0.11 % |
+| PMOS_OFF | 8.08 % | 6.74 % | 5.35 % | 5.07 % |
+
+## Chosen models (final rung: L3; test set scored once)
+
+| Case | model | id: median / p95 (%) | ig: median / p95 (%) | is: median / p95 (%) | ib: median / p95 (%) |
+|---|---|---|---|---|---|
+| NMOS_ON | mlp, 3 member(s), 127000 rows, per-width targets | 0.11 / 6.7 | 0.0767 / 0.493 | 0.11 / 6.75 | 0.082 / 0.366 |
+| NMOS_OFF | mlp, 3 member(s), 127000 rows, per-width targets | 0.54 / 2.98 | 0.146 / 0.573 | 0.597 / 3.11 | 0.294 / 1.39 |
+| PMOS_ON | mlp, 3 member(s), 127000 rows, per-width targets | 0.0979 / 8.31 | 0.0648 / 0.307 | 0.098 / 8.26 | 0.0755 / 0.418 |
+| PMOS_OFF | mlp, 3 member(s), 127000 rows, per-width targets | 2.83 / 16.6 | 12.6 / 249 | 3.78 / 36.7 | 0.992 / 4.92 |

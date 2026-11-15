@@ -1,0 +1,1 @@
+circuit vs sum of gates (100 samples): median 0.054%, max 0.481%
